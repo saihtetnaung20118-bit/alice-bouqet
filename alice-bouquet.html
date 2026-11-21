@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>For Alice ♡</title>
+<style>
+  *{box-sizing:border-box} html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#03030a;color:#fff;font-family:Georgia,'Times New Roman',serif}
+  body{display:flex;align-items:center;justify-content:center;min-height:100svh}
+  canvas{position:absolute;inset:0;width:100%;height:100%;cursor:pointer}
+  .top{position:absolute;top:18px;left:20px;font-style:italic;font-size:14px;letter-spacing:.04em;color:#d8d7e8;opacity:.88;pointer-events:none}
+  .hint{position:absolute;bottom:22px;left:12px;right:12px;text-align:center;pointer-events:none}
+  .message{font-size:clamp(22px,3.1vw,34px);font-style:italic;letter-spacing:.02em;color:#79a9ff;text-shadow:0 0 14px currentColor,0 0 30px #315dff66;margin-bottom:8px}
+  .sub{font-size:11px;letter-spacing:.19em;color:#aaa8bd;opacity:.8}
+  .tap{position:absolute;top:18px;right:20px;border:1px solid #ffffff30;border-radius:30px;padding:8px 13px;font-size:12px;color:#d6d4e3;font-style:italic;pointer-events:none}
+  .heart{color:#8db7ff}
+  @media(max-width:600px){.top{top:14px;left:14px;font-size:12px}.tap{top:12px;right:12px;font-size:11px}.hint{bottom:24px}.sub{font-size:9px;letter-spacing:.12em}}
+</style>
+</head>
+<body>
+<canvas id="art" aria-label="A glowing ASCII bouquet of lilies. Tap to change its colours."></canvas>
+<div class="top">♡ a little something for you</div>
+<div class="tap">↻ tap anywhere</div>
+<div class="hint">
+  <div class="message">I'm sorry Alice, I love u my love. <span class="heart">♡</span></div>
+  <div class="sub">MY LOVE, I HOPE THIS MAKES YOU SMILE</div>
+</div>
+<script>
+const canvas=document.getElementById('art'),ctx=canvas.getContext('2d');
+let W,H,dpr,points=[],palette=0,frame=0;
+const palettes=[['#f5f5ff','#719cff','#b8caff','#dce7ff'],['#ffd8ec','#ff83bd','#ffc0dd','#fff0f7'],['#d8ffe9','#65dca5','#a6f5ce','#e4fff1'],['#f8e6b5','#d6a84f','#ffe6a0','#fff5d6'],['#e8d7ff','#a985ff','#d0baff','#f5efff']];
+const glyphs='*+x#.:;░▒▓';
+function resize(){dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;canvas.width=W*dpr;canvas.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);makeArt()}
+function makeArt(){
+ const off=document.createElement('canvas');off.width=Math.max(1,Math.floor(W/2));off.height=Math.max(1,Math.floor(H/2));const g=off.getContext('2d');
+ const sx=off.width/ W, sy=off.height/H;g.scale(sx,sy);
+ const cx=W/2, cy=H*.43, scale=Math.min(W/850,H/650,1.15);
+ g.translate(cx,cy);g.scale(scale,scale);
+ // bouquet wrapper
+ g.fillStyle='#fff';g.beginPath();g.moveTo(-155,80);g.quadraticCurveTo(0,145,155,80);g.lineTo(62,315);g.quadraticCurveTo(0,340,-62,315);g.closePath();g.fill();
+ g.lineWidth=5;g.strokeStyle='#fff';g.beginPath();g.moveTo(-150,82);g.quadraticCurveTo(0,120,150,82);g.stroke();
+ // stems and leaves
+ g.lineWidth=8;g.lineCap='round';
+ for(let i=-4;i<=4;i++){g.beginPath();g.moveTo(i*9,95);g.quadraticCurveTo(i*22,-15+i*8,i*48,-190+Math.abs(i)*10);g.stroke()}
+ for(let i=-3;i<=3;i++){g.beginPath();g.ellipse(i*30,55-i*4,20,62,i*.24,0,Math.PI*2);g.fill()}
+ // Five unmistakable lilies: six long recurved tepals, a trumpet throat and stamens
+ const flowers=[[-145,-150,.88],[-65,-230,.78],[55,-245,.83],[145,-155,.9],[0,-95,1.0]];
+ for(const [x,y,s] of flowers){g.save();g.translate(x,y);g.scale(s,s);
+   // six narrow, pointed lily petals radiating from the flower throat
+   for(let k=0;k<6;k++){g.save();g.rotate(k*Math.PI/3);g.beginPath();g.moveTo(0,12);g.bezierCurveTo(-18,-18,-30,-83,-8,-145);g.quadraticCurveTo(0,-158,8,-145);g.bezierCurveTo(30,-83,18,-18,0,12);g.fill();g.restore()}
+   // open trumpet-shaped centre
+   g.beginPath();g.moveTo(-18,12);g.bezierCurveTo(-28,-25,-20,-62,0,-82);g.bezierCurveTo(20,-62,28,-25,18,12);g.closePath();g.fill();
+   // six fine filaments and anthers, characteristic of lilies
+   g.strokeStyle='#fff';g.lineWidth=3;g.lineCap='round';
+   for(let k=0;k<6;k++){g.save();g.rotate(k*Math.PI/3);g.beginPath();g.moveTo(0,-4);g.quadraticCurveTo(12,-34,23,-58);g.stroke();g.beginPath();g.ellipse(23,-60,5,10,.25,0,Math.PI*2);g.fill();g.restore()}
+   g.beginPath();g.arc(0,5,8,0,Math.PI*2);g.fill();g.restore();
+ }
+ const img=g.getImageData(0,0,off.width,off.height).data;points=[];
+ for(let y=0;y<off.height;y+=2){for(let x=0;x<off.width;x+=2){let a=img[(y*off.width+x)*4+3];if(a>100){points.push({x:x/sx-cx,y:y/sy-cy,seed:Math.random()*10,size:8+Math.random()*3,kind:Math.random()})}}}
+}
+function draw(){frame++;ctx.clearRect(0,0,W,H);const pal=palettes[palette];const scale=Math.min(W/850,H/650,1.15);ctx.save();ctx.translate(W/2,H*.43);ctx.scale(scale,scale);
+ for(const p of points){const tw=.65+.35*Math.sin(frame*.035+p.seed*3);const c=p.kind<.12?pal[0]:p.kind<.48?pal[1]:p.kind<.82?pal[2]:pal[3];ctx.globalAlpha=.52+.48*tw;ctx.fillStyle=c;ctx.shadowColor=c;ctx.shadowBlur= p.kind<.18?10:4;ctx.font=`${p.size}px monospace`;const ch=glyphs[Math.floor((p.seed*13+frame*.006)%glyphs.length)];ctx.fillText(ch,p.x,p.y+Math.sin(frame*.018+p.seed)*1.5)}
+ ctx.restore();ctx.globalAlpha=1;ctx.shadowBlur=0;requestAnimationFrame(draw)}
+canvas.addEventListener('click',()=>{palette=(palette+1)%palettes.length});window.addEventListener('resize',resize);resize();draw();
+</script>
+</body></html>
